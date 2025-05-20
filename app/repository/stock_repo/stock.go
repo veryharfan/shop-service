@@ -47,7 +47,8 @@ func (r *stockRepository) InitStock(ctx context.Context, warehouse domain.InitSt
 	}
 	defer resp.Body.Close()
 
-	if err := pkg.DecodeResponseBody(resp, map[string]string{}); err != nil {
+	var res any
+	if err := pkg.DecodeResponseBody(resp, &res); err != nil {
 		slog.ErrorContext(ctx, "[stockRepository] InitStock", "DecodeResponseBody", err)
 		return err
 	}
