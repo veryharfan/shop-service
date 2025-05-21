@@ -42,16 +42,13 @@ func (r *shopRepository) GetByUserID(ctx context.Context, userID int64) (*domain
 	return shop, nil
 }
 
-func (r *shopRepository) BeginTransaction(ctx context.Context) (*sql.Tx, error) {
+func (r *shopRepository) WithTransaction(ctx context.Context, fn func(context.Context, *sql.Tx) error) error {
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		slog.ErrorContext(ctx, "[shopRepository] BeginTransaction", "beginTx", err)
-		return nil, err
+		return err
 	}
-	return tx, nil
-}
 
-func (r *shopRepository) WithTransaction(ctx context.Context, tx *sql.Tx, fn func(context.Context, *sql.Tx) error) error {
 	if err := fn(ctx, tx); err != nil {
 		if rollbackErr := tx.Rollback(); rollbackErr != nil {
 			slog.ErrorContext(ctx, "[shopRepository] WithTransaction", "rollback", rollbackErr)

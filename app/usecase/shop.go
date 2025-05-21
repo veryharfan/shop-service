@@ -25,18 +25,12 @@ func (u *shopUsecase) Create(ctx context.Context, req domain.CreateShopRequest) 
 		return nil, domain.ErrValidation
 	}
 
-	tx, err := u.shopRepo.BeginTransaction(ctx)
-	if err != nil {
-		slog.ErrorContext(ctx, "[shopUsecase] Create", "beginTransaction", err)
-		return nil, err
-	}
-
 	shop := &domain.Shop{
 		UserID: req.UserID,
 		Name:   req.Name,
 	}
 
-	err = u.shopRepo.WithTransaction(ctx, tx, func(ctx context.Context, tx *sql.Tx) error {
+	err = u.shopRepo.WithTransaction(ctx, func(ctx context.Context, tx *sql.Tx) error {
 		err = u.shopRepo.Create(ctx, shop, tx)
 		if err != nil {
 			slog.ErrorContext(ctx, "[shopUsecase] Create", "createShop", err)

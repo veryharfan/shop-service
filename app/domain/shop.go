@@ -27,6 +27,5 @@ type ShopRepository interface {
 	Create(ctx context.Context, req *Shop, tx *sql.Tx) error
 	GetByUserID(ctx context.Context, userID int64) (*Shop, error)
 
-	BeginTransaction(ctx context.Context) (*sql.Tx, error)
-	WithTransaction(ctx context.Context, tx *sql.Tx, fn func(context.Context, *sql.Tx) error) error
+	WithTransaction(ctx context.Context, fn func(context.Context, *sql.Tx) error) error
 }
