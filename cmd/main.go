@@ -10,8 +10,7 @@ import (
 	handler "shop-service/app/handler/api"
 	"shop-service/app/middleware"
 	"shop-service/app/repository/db"
-	productrepo "shop-service/app/repository/product_repo"
-	stockrepo "shop-service/app/repository/stock_repo"
+	userrepo "shop-service/app/repository/user_repo"
 	"shop-service/app/usecase"
 	"shop-service/config"
 	"shop-service/pkg/logger"
@@ -50,14 +49,11 @@ func main() {
 
 	reqValidator := validator.New(validator.WithRequiredStructEnabled())
 	shopRepo := db.NewShopRepository(dbConn)
-	productRepo := productrepo.NewProductRepository(&httpClient, cfg.ProductServiceHost, cfg.InternalAuthHeader)
-	stockRepo := stockrepo.NewStockRepository(&httpClient, cfg.WarehouseServiceHost, cfg.InternalAuthHeader)
+	userRepo := userrepo.NewUserRepository(&httpClient, cfg.UserServiceHost, cfg.InternalAuthHeader)
 
-	shopUsecase := usecase.NewShopUsecase(shopRepo, cfg)
-	productUsecase := usecase.NewProductUsecase(productRepo, stockRepo, cfg)
+	shopUsecase := usecase.NewShopUsecase(shopRepo, userRepo, cfg)
 
 	userHandler := handler.NewShopHandler(shopUsecase, reqValidator, cfg)
-	productHandler := handler.NewProductHandler(productUsecase, reqValidator, cfg)
 
 	// Initialize HTTP web framework
 	app := fiber.New()
@@ -81,7 +77,7 @@ func main() {
 	}))
 	app.Use(middleware.RequestIDMiddleware())
 
-	handler.SetupRouter(app, userHandler, productHandler, cfg)
+	handler.SetupRouter(app, userHandler, cfg)
 
 	go func() {
 		if err := app.Listen(":" + cfg.Port); err != nil {

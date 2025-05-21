@@ -1,6 +1,9 @@
 package domain
 
-import "context"
+import (
+	"context"
+	"database/sql"
+)
 
 type Shop struct {
 	ID        int64  `json:"id"`
@@ -21,6 +24,9 @@ type ShopUsecase interface {
 }
 
 type ShopRepository interface {
-	Create(ctx context.Context, req *Shop) error
+	Create(ctx context.Context, req *Shop, tx *sql.Tx) error
 	GetByUserID(ctx context.Context, userID int64) (*Shop, error)
+
+	BeginTransaction(ctx context.Context) (*sql.Tx, error)
+	WithTransaction(ctx context.Context, tx *sql.Tx, fn func(context.Context, *sql.Tx) error) error
 }

@@ -11,12 +11,11 @@ import (
 )
 
 type Config struct {
-	Port                 string    `mapstructure:"PORT" validate:"required"`
-	InternalAuthHeader   string    `mapstructure:"INTERNAL_AUTH_HEADER" validate:"required"`
-	Db                   DbConfig  `mapstructure:",squash"`
-	Jwt                  JwtConfig `mapstructure:",squash"`
-	ProductServiceHost   string    `mapstructure:"PRODUCT_SERVICE_HOST" validate:"required"`
-	WarehouseServiceHost string    `mapstructure:"WAREHOUSE_SERVICE_HOST" validate:"required"`
+	Port               string    `mapstructure:"PORT" validate:"required"`
+	InternalAuthHeader string    `mapstructure:"INTERNAL_AUTH_HEADER" validate:"required"`
+	Db                 DbConfig  `mapstructure:",squash"`
+	Jwt                JwtConfig `mapstructure:",squash"`
+	UserServiceHost    string    `mapstructure:"USER_SERVICE_HOST" validate:"required"`
 }
 
 type DbConfig struct {
@@ -80,6 +79,7 @@ func InitConfig(ctx context.Context) (*Config, error) {
 		"JWT_SECRETKEY",
 		"JWT_EXPIRE",
 		"INTERNAL_AUTH_HEADER",
+		"USER_SERVICE_HOST",
 	}
 
 	slog.InfoContext(ctx, "[InitConfig] Environment variables debug:")
@@ -103,7 +103,9 @@ func InitConfig(ctx context.Context) (*Config, error) {
 		"DB_USERNAME", cfg.Db.Username,
 		"DB_DBNAME", cfg.Db.DbName,
 		"DB_SSLMODE", cfg.Db.SSLMode,
-		"JWT_EXPIRE", cfg.Jwt.Expire)
+		"JWT_EXPIRE", cfg.Jwt.Expire,
+		"USER_SERVICE_HOST", cfg.UserServiceHost,
+	)
 
 	// Validate configuration
 	validate := validator.New()

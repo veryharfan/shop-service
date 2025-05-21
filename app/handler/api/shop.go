@@ -50,3 +50,20 @@ func (h *shopHandler) Create(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(dto.Success(shop))
 }
+
+func (h *shopHandler) GetByUserID(c *fiber.Ctx) error {
+	userID, err := ctxutil.GetUserIDCtx(c.Context())
+	if err != nil {
+		slog.ErrorContext(c.Context(), "[shopHandler] GetByUserID", "getUserIDCtx", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(dto.Error(domain.ErrInternal))
+	}
+
+	shop, err := h.shopUsecase.GetByUserID(c.Context(), userID)
+	if err != nil {
+		slog.ErrorContext(c.Context(), "[shopHandler] GetByUserID", "usecase", err)
+		status, dto := dto.FromError(err)
+		return c.Status(status).JSON(dto)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(dto.Success(shop))
+}

@@ -15,9 +15,9 @@ func NewShopRepository(db *sql.DB) domain.ShopRepository {
 	return &shopRepository{db}
 }
 
-func (r *shopRepository) Create(ctx context.Context, req *domain.Shop) error {
+func (r *shopRepository) Create(ctx context.Context, req *domain.Shop, tx *sql.Tx) error {
 	query := `INSERT INTO shops (user_id, name) VALUES ($1, $2) RETURNING id, created_at, updated_at`
-	row := r.conn.QueryRowContext(ctx, query, req.UserID, req.Name)
+	row := tx.QueryRowContext(ctx, query, req.UserID, req.Name)
 	if err := row.Scan(&req.ID, &req.CreatedAt, &req.UpdatedAt); err != nil {
 		slog.ErrorContext(ctx, "[shopRepository] Create", "scan", err)
 		return err
@@ -40,4 +40,24 @@ func (r *shopRepository) GetByUserID(ctx context.Context, userID int64) (*domain
 	}
 
 	return shop, nil
+}
+
+func (r *shopRepository) BeginTransaction(ctx context.Context) (*sql.Tx, error) {
+	tx, err := r.conn.BeginTx(ctx, nil)
+	if err != nil {
+		slog.ErrorContext(ctx, "[shopRepository] BeginTransaction", "beginTx", err)
+		return nil, err
+	}
+	return tx, nil
+}
+
+func (r *shopRepository) WithTransaction(ctx context.Context, tx *sql.Tx, fn func(context.Context, *sql.Tx) error) error {
+	if err := fn(ctx, tx); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			slog.ErrorContext(ctx, "[shopRepository] WithTransaction", "rollback", rollbackErr)
+			return rollbackErr
+		}
+		return err
+	}
+	return tx.Commit()
 }
